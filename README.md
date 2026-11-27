@@ -185,17 +185,14 @@ Résultat : **Snort 2.9.7.0 (build 149)**, avec ses dépendances (dont `libpcap`
 
 Pour que l'interface capture le trafic destiné aux autres machines :
 
-- **Sous VirtualBox** : `Paramètres` → `Réseau` → `Avancé` → *Mode promiscuité* : **Autoriser tout** ;
+- **Sous VirtualBox** : `configuration` → `Réseau` → *Mode promiscuité* : **allow all** ;
+  <img width="816" height="520" alt="Capture d&#39;écran 2026-11-27 125940" src="https://github.com/user-attachments/assets/2680cce3-d260-40e8-aa34-e0e9044d5c3e" />
+
 - **Sur une machine physique** :
 
 ```bash
 sudo ip link set enp0s3 promisc on
 ```
-
-<!-- 📸 IMAGE : paramètres réseau VirtualBox avec le mode promiscuité sur « Autoriser tout » -->
-![Mode promiscuité](images/08-mode-promiscuite.png)
-
----
 
 ## 6. 🔧 Configuration de Snort
 
