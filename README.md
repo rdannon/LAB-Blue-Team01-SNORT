@@ -8,8 +8,9 @@
 
 > Déploiement d'un **système de détection d'intrusion réseau (NIDS)** avec **Snort 2** dans un laboratoire virtualisé : installation, configuration du fichier `snort.conf`, écriture de règles personnalisées (ICMP, SSH, FTP), chargement de règles communautaires (détection d'**EternalBlue**) et journalisation des alertes et du trafic.
 
-<!-- 📸 IMAGE : schéma d'architecture du lab (Kali, Ubuntu/Snort, Metasploitable 2, Windows 7) ou capture d'ensemble -->
-![Vue d'ensemble du lab](images/00-vue-ensemble.png)
+<img width="2400" height="1440" alt="03-architecture-lab" src="https://github.com/user-attachments/assets/9e9c9215-36b5-498e-b86b-e2ba073abffc" />
+
+**Vue d'ensemble du lab**
 
 ---
 
@@ -66,6 +67,8 @@ Le projet couvre :
 ## 3. 📚 Notions théoriques
 
 ### 3.1 IDS : HIDS et NIDS
+<img width="763" height="391" alt="Capture d&#39;écran 2026-11-27 124122" src="https://github.com/user-attachments/assets/e868064d-de79-4e89-afa7-de49ce4ddc8f" />
+
 
 Un **système de détection d'intrusion (IDS)** découvre activement des menaces, des attaques ou des intrusions sur un réseau, un hôte ou des services. Il capture le trafic, identifie les activités malveillantes selon des **règles prédéfinies**, les journalise et alerte les responsables.
 
@@ -83,9 +86,8 @@ Un **système de détection d'intrusion (IDS)** découvre activement des menaces
 | **NIDS** | Analyse les paquets et les compare aux signatures définies dans les règles ← *mode utilisé dans ce lab* |
 
 Snort capture les paquets, les réassemble, les analyse, puis décide de l'action à appliquer selon les règles. **Sans règles, Snort est inopérant.**
+<img width="1336" height="528" alt="Capture d&#39;écran 2026-11-27 123913" src="https://github.com/user-attachments/assets/c74d26ec-2957-4c95-9511-2dda24e6f8cb" />
 
-<!-- 📸 IMAGE : schéma du fonctionnement de Snort (capture, préprocesseur, décodage, moteur de détection, alertes et logs) -->
-![Fonctionnement de Snort](images/01-fonctionnement-snort.png)
 
 ### 3.3 Snort 2 et Snort 3
 
@@ -104,7 +106,10 @@ On peut aussi **écrire ses propres règles**, par exemple après avoir analysé
 
 ### 3.5 Syntaxe d'une règle Snort
 
-Une règle comporte un **en-tête** (action, protocole, adresse et port source, direction, adresse et port destination) et des **options** entre parenthèses :
+Une règle comporte un **en-tête** (action, protocole, adresse et port source, direction, adresse et port destination) et des **options** 
+entre parenthèses :
+
+<img width="1284" height="547" alt="Capture d&#39;écran 2026-11-27 121453" src="https://github.com/user-attachments/assets/25269dd6-d51f-458d-8c16-512caa5900ff" />
 
 ```text
 action  protocole  ip_source  port_source  ->  ip_destination  port_destination  (options)
@@ -119,8 +124,9 @@ Actions possibles : `alert`, `log`, `pass`, `drop`, `reject` (les deux dernière
 - **Mode IDS (ce lab)** : Snort est connecté au **commutateur** et observe le trafic de tout le réseau ;
 - **Mode IPS (inline)** : Snort est placé à un **point de passage obligé** (entre le routeur et le commutateur) pour pouvoir bloquer les paquets. Il nécessite deux cartes réseau et le transfert du trafic.
 
-<!-- 📸 IMAGE : schéma de placement de Snort en mode IDS et en mode IPS -->
-![Placement de Snort](images/02-placement-snort.png)
+<img width="2400" height="1500" alt="02-placement-snort" src="https://github.com/user-attachments/assets/caf81642-d3d5-4d37-8522-5942b2d3021c" />
+
+**Placement de Snort**
 
 ---
 
@@ -130,18 +136,17 @@ Le laboratoire est virtualisé sous **VirtualBox**.
 
 | Machine | Rôle | Adresse |
 |---|---|---|
-| **Ubuntu 20.04** | Serveur Snort (NIDS) | 192.168.2.179 |
+| **Ubuntu 20.04** | Serveur Snort (NIDS) | 192.168.1.10 |
 | **Kali Linux** | Machine attaquante | Réseau NAT externe |
-| **Metasploitable 2** | Serveur Linux vulnérable (cible SSH et FTP) | 192.168.2.157 |
-| **Windows 7** | Cible de l'exploitation EternalBlue | 192.168.2.35 |
+| **Metasploitable 2** | Serveur Linux vulnérable (cible SSH et FTP) | 192.168.1.53 |
+| **Windows 10** | Cible de l'exploitation EternalBlue | 192.168.1.15 |
 
-Réseau interne surveillé : **192.168.2.0/24**. Le commutateur virtuel de VirtualBox joue le rôle du commutateur du schéma.
+Réseau interne surveillé : **192.168.1.0/24**. Le commutateur virtuel de VirtualBox joue le rôle du commutateur du schéma.
 
-<!-- 📸 IMAGE : schéma du lab réalisé (adresses IP des machines) -->
-![Architecture du lab](images/03-architecture-lab.png)
-
-<!-- 📸 IMAGE : liste des VM dans VirtualBox -->
-![VM VirtualBox](images/04-vms-virtualbox.png)
+<img width="2400" height="1520" alt="00-vue-ensemble" src="https://github.com/user-attachments/assets/f5f153c5-b3ec-4199-9710-808736fe0900" />
+**Architecture du lab**
+<img width="1363" height="373" alt="Capture d&#39;écran 2026-11-27 123503" src="https://github.com/user-attachments/assets/038c97e8-89bf-48ab-b440-12e564124557" />
+**VM VirtualBox**
 
 ---
 
@@ -157,7 +162,7 @@ sudo apt-get install snort
 Pendant l'installation, deux questions sont posées :
 
 1. **L'interface à surveiller** : par exemple `enp0s3` (à repérer avec `ifconfig` ou `ip a`) ;
-2. **La plage d'adresses du réseau** : par exemple `192.168.2.0/24`.
+2. **La plage d'adresses du réseau** : par exemple `192.168.1.0/24`.
 
 <!-- 📸 IMAGE : installation de Snort, fenêtre de choix de l'interface -->
 ![Choix de l'interface](images/05-install-interface.png)
